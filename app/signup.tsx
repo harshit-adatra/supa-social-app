@@ -5,15 +5,16 @@ import Input from "@/components/Input";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { theme } from "@/constants/theme";
 import { hp, wp } from "@/helpers/common";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
-    Alert,
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 export default function Signup() {
   const router = useRouter();
@@ -21,18 +22,41 @@ export default function Signup() {
   const passwordRef = useRef<string>("");
   const nameRef = useRef<string>("");
   const [loading, setLoading] = useState(false);
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (
       nameRef.current === "" ||
       emailRef.current === "" ||
       passwordRef.current === ""
     ) {
       Alert.alert("Please enter your email and password");
+
       return;
     }
     console.log(nameRef.current, emailRef.current, passwordRef.current);
 
-    setLoading(true);
+    let name = nameRef.current.trim();
+    let email = emailRef.current.trim();
+    let password = passwordRef.current.trim();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+        },
+      },
+    });
+    console.log(session);
+    if (error) {
+      console.log(error);
+      Alert.alert("Error", error.message);
+    } else {
+      router.push("/home");
+    }
+    setLoading(false);
   };
   return (
     <ScreenWrapper>
